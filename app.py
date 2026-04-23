@@ -110,9 +110,13 @@ def processar_pergunta(pergunta, usou_voz=False):
     if api_key and tem_internet():
         try:
             print("[☁️] A processar na Cloud...")
+            # AQUI ESTÁ O NOVO CÉREBRO 3.1
             cloud_llm = ChatOpenAI(
-                openai_api_base="https://openrouter.ai/api/v1", openai_api_key=api_key,
-                model_name="meta-llama/llama-3-8b-instruct:free", max_tokens=250, temperature=0.8
+                openai_api_base="https://openrouter.ai/api/v1", 
+                openai_api_key=api_key,
+                model_name="meta-llama/llama-3.1-8b-instruct:free", 
+                max_tokens=250, 
+                temperature=0.8
             )
             resposta = cloud_llm.invoke(prompt.format(question=pergunta)).content.strip()
         except Exception as e:
@@ -158,10 +162,9 @@ def escutar():
 threading.Thread(target=escutar, daemon=True).start()
 
 try:
-    # Tenta forçar a abertura como uma "App" de Desktop
-    print("[🖥️] Marianaa > A invocar interface gráfica...")
-    eel.start('index.html', size=(1200, 800))
+    print("[🖥️] Marianaa > A invocar interface gráfica e a abrir portas na rede...")
+    eel.start('index.html', host='0.0.0.0', port=8000, size=(1200, 800))
 except EnvironmentError:
-    # Failsafe: Se o Linux não encontrar o Chrome/Edge, abre no navegador padrão
     print("[⚠️] Marianaa > Chrome não detetado. A abrir no navegador padrão...")
-    eel.start('index.html', mode='default', size=(1200, 800))
+    eel.start('index.html', host='0.0.0.0', port=8000, mode='default', size=(1200, 800))
+
