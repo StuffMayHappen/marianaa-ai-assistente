@@ -154,3 +154,14 @@ if (btn && input) {
         if(e.key === 'Enter') btn.onclick(); 
     };
 }
+
+// ==========================================
+// RECETOR DE ÁUDIO VIA REDE (TELEMÓVEL/PC)
+// ==========================================
+eel.expose(tocar_audio_no_navegador);
+function tocar_audio_no_navegador(audio_b64) {
+    let audio = new Audio("data:audio/mp3;base64," + audio_b64);
+    audio.play().catch(function(erro) {
+        console.log("Aviso: O telemóvel bloqueou o áudio automático. Toca no ecrã primeiro!", erro);
+    });
+}

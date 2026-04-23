@@ -49,7 +49,7 @@ def save_config(new_cfg):
     if 'api_key' in cfg_atual: new_cfg['api_key'] = cfg_atual['api_key']
     with open(CONFIG_FILE, "w") as f: json.dump(new_cfg, f, indent=4)
 
-# --- CORDAS VOCAIS ---
+# --- CORDAS VOCAIS (TRANSMISSÃO REDE/BASE64) ---
 def falar_texto(texto, bloqueante=False):
     cfg = load_config()
     async def amain():
@@ -57,17 +57,14 @@ def falar_texto(texto, bloqueante=False):
         communicate = edge_tts.Communicate(texto, voice)
         audio_data = b""
         async for chunk in communicate.stream():
-            if chunk["type"] == "audio": audio_data += chunk["data"]
+            if chunk["type"] == "audio": 
+                audio_data += chunk["data"]
         
         if audio_data:
-            process = subprocess.Popen(
-                ['ffmpeg', '-i', 'pipe:0', '-f', 'f32le', '-acodec', 'pcm_f32le', '-ar', '44100', 'pipe:1'],
-                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL
-            )
-            out, _ = process.communicate(input=audio_data)
-            som = np.frombuffer(out, dtype=np.float32).reshape(-1, 1)
-            sd.play(som, 44100)
-            sd.wait()
+            # Empacotar o áudio gerado para viajar pela rede Wi-Fi
+            audio_b64 = base64.b64encode(audio_data).decode('utf-8')
+            # Dar a ordem ao navegador (PC ou Telemóvel) para tocar
+            eel.tocar_audio_no_navegador(audio_b64)()
 
     def run():
         loop = asyncio.new_event_loop()
@@ -75,6 +72,7 @@ def falar_texto(texto, bloqueante=False):
     
     if bloqueante: run()
     else: threading.Thread(target=run, daemon=True).start()
+    
 
 # --- MONSTRO 8B OU CLOUD-ONLY ---
 cfg_inicial = load_config()
