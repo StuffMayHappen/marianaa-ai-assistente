@@ -1,24 +1,21 @@
 #!/bin/bash
-
 echo "[🧹] Marianaa > A incinerar a compilação antiga..."
-rm -rf build dist Marianaa_AI.spec
+rm -rf build dist Marianaa_AI_Assistente.spec
 
-echo "[🎨] Marianaa > A preparar o novo rosto com o logo..."
-
+echo "[🎨] Marianaa > A forjar a app (com ouvidos Vosk blindados)..."
+# A MÁGICA ESTÁ AQUI: --collect-all vosk
 pyinstaller --noconsole \
     --name "Marianaa_AI_Assistente" \
-    --icon="/home/walterlandd/Pictures/logo_app_ai.png" \
     --add-data "web:web" \
+    --collect-all vosk \
+    --collect-all llama_cpp \
     app.py
 
 echo "[⚙️] Marianaa > A repor os cérebros na pasta de distribuição..."
 cp -r models dist/Marianaa_AI_Assistente/
 cp -r modelos_voz dist/Marianaa_AI_Assistente/
+cp -r docs dist/Marianaa_AI_Assistente/
 cp config.json dist/Marianaa_AI_Assistente/
+cp /home/walterlandd/Pictures/logo_app_ai.png dist/Marianaa_AI_Assistente/
 
-echo "[✅] Marianaa > Compilação terminada! A verificar integridade..."
-if [ -f "dist/Marianaa_AI_Assistente/Marianaa_AI_Assistente" ]; then
-    echo "[🚀] Sistema operacional. Podes encontrar-me em: dist/Marianaa_AI_Assistente/"
-else
-    echo "[💀] Erro crítico na forja. Revisa os logs."
-fi
+echo "[✅] Marianaa > Compilação e preparação terminadas!"

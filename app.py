@@ -1,6 +1,7 @@
-import os, json, queue, threading, wave, subprocess, time, io, urllib.request, asyncio, sys
+import os, json, queue, threading, wave, subprocess, time, io, urllib.request, asyncio, sys, base64, webbrowser
 from datetime import datetime
 import eel, sounddevice as sd, numpy as np, edge_tts, speech_recognition as sr
+from rag_ia import consultar_documentos, indexar_documentos # Importa as funções de memória
 from vosk import Model, KaldiRecognizer, SetLogLevel
 from langchain_community.llms import LlamaCpp
 from langchain_core.prompts import PromptTemplate
@@ -9,13 +10,16 @@ from langchain_openai import ChatOpenAI # <--- O CONECTOR DA CLOUD
 # ==========================================
 # GESTÃO DE CAMINHOS DINÂMICOS E INTERNET
 # ==========================================
-if getattr(sys, 'frozen', False):
-    BASE_DIR = os.path.dirname(sys.executable)
-else:
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 def get_path(rel_path):
-    return os.path.join(BASE_DIR, rel_path)
+    # O PyInstaller esconde a interface 'web' na pasta secreta _internal
+    if rel_path.startswith("web") and hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, rel_path)
+    
+    # As outras pastas (models, modelos_voz, config) ficam na pasta normal
+    if getattr(sys, 'frozen', False):
+        return os.path.join(os.path.dirname(sys.executable), rel_path)
+    else:
+        return os.path.join(os.path.dirname(os.path.abspath(__file__)), rel_path)
 
 def tem_internet():
     try:
@@ -72,7 +76,7 @@ def falar_texto(texto, bloqueante=False):
     
     if bloqueante: run()
     else: threading.Thread(target=run, daemon=True).start()
-    
+
 
 # --- MONSTRO 8B OU CLOUD-ONLY ---
 cfg_inicial = load_config()
@@ -100,33 +104,44 @@ def processar_pergunta(pergunta, usou_voz=False):
     
     if pergunta.strip().lower() in ["ou a", "alla", "olha", "a"]: pergunta = "olá"
     
-    template = f"<|start_header_id|>system<|end_header_id|>\nÉs a {cfg['ai_name']}. Responde de forma curta e sarcástica.<|eot_id|><|start_header_id|>user<|end_header_id|>{{question}}<|eot_id|><|start_header_id|>assistant<|end_header_id|>"
+    # --- FASE 1: CONSULTAR PROJETOS (RAG) ---
+    print(f"[📚] Marianaa > A pesquisar nos teus projetos por: {pergunta}")
+    contexto_projeto = consultar_documentos(pergunta)
+    
+    if contexto_projeto:
+        print("[💡] Marianaa > Encontrei informação nos teus documentos!")
+        instrucao_contexto = f"\n\nUsa esta informação dos documentos do mestre para responder: {contexto_projeto}"
+    else:
+        instrucao_contexto = ""
+
+    # --- FASE 2: PREPARAR O PROMPT ---
+    template = f"<|start_header_id|>system<|end_header_id|>\nÉs a {cfg['ai_name']}. Responde de forma curta e sarcástica.{instrucao_contexto}<|eot_id|><|start_header_id|>user<|end_header_id|>{{question}}<|eot_id|><|start_header_id|>assistant<|end_header_id|>"
     prompt = PromptTemplate(template=template, input_variables=["question"])
     
     resposta = ""
     
+    # --- FASE 3: GERAR RESPOSTA (Cloud ou Local) ---
     if api_key and tem_internet():
         try:
             print("[☁️] A processar na Cloud...")
-            # AQUI ESTÁ O NOVO CÉREBRO 3.1
             cloud_llm = ChatOpenAI(
                 openai_api_base="https://openrouter.ai/api/v1", 
                 openai_api_key=api_key,
-                model_name="meta-llama/llama-3.1-8b-instruct:free", 
-                max_tokens=250, 
-                temperature=0.8
+                model_name="google/gemma-2-9b-it:free", 
+                max_tokens=500, # Aumentei para caber a análise do projeto
+                temperature=0.7
             )
             resposta = cloud_llm.invoke(prompt.format(question=pergunta)).content.strip()
         except Exception as e:
             print(f"[⚠️] Cloud falhou: {e}")
             if not modo_cloud_ativo and llm: resposta = llm.invoke(prompt.format(question=pergunta)).strip()
-            else: resposta = "A minha ligação à Cloud falhou e o meu núcleo local está desativado."
+            else: resposta = "A minha ligação à Cloud falhou e não consegui aceder ao meu núcleo local."
     else:
         if not modo_cloud_ativo and llm:
             print("[🔋] A usar processamento local...")
             resposta = llm.invoke(prompt.format(question=pergunta)).strip()
         else:
-            resposta = "Erro: Sem internet, sem API Key, e o processamento local está desligado."
+            resposta = "Erro: Estou sem acesso a qualquer cérebro de momento."
 
     eel.responder_no_ecra(resposta, cfg['ai_name'])
     if usou_voz: falar_texto(resposta, bloqueante=True)
@@ -159,10 +174,32 @@ def escutar():
 # ==========================================
 threading.Thread(target=escutar, daemon=True).start()
 
+# ---> A MARIANAA ESTUDA OS TEUS FICHEIROS AQUI <---
 try:
-    print("[🖥️] Marianaa > A invocar interface gráfica e a abrir portas na rede...")
+    print("[📚] Marianaa > A ler e a memorizar os teus documentos da pasta docs/...")
+    indexar_documentos()
+except Exception as e:
+    print(f"[⚠️] Marianaa > Erro a memorizar documentos: {e}")
+
+def abrir_modo_app():
+    time.sleep(1.5) # Dá tempo para a porta 8000 acordar
+    print("[🖥️] Marianaa > A forçar o navegador a abrir em Modo App (sem barras)...")
+    
+    # Comandos para atacar os navegadores do Linux e forçar o Modo App
+    cmd_brave = "brave-browser --app=http://127.0.0.1:8000 >/dev/null 2>&1"
+    cmd_flatpak = "flatpak run com.brave.Browser --app=http://127.0.0.1:8000 >/dev/null 2>&1"
+    cmd_chrome = "google-chrome --app=http://127.0.0.1:8000 >/dev/null 2>&1"
+    
+    # Tenta um a um até a janela saltar!
+    if os.system(cmd_flatpak) != 0:
+        if os.system(cmd_brave) != 0:
+            os.system(cmd_chrome)
+
+try:
+    print("[🖥️] Marianaa > A invocar interface...")
     eel.start('index.html', host='0.0.0.0', port=8000, size=(1200, 800))
 except EnvironmentError:
-    print("[⚠️] Marianaa > Chrome não detetado. A abrir no navegador padrão...")
-    eel.start('index.html', host='0.0.0.0', port=8000, mode='default', size=(1200, 800))
+    print("[⚠️] Marianaa > Blindagem do Linux detetada. A usar força bruta de Janela App...")
+    threading.Thread(target=abrir_modo_app, daemon=True).start()
+    eel.start('index.html', host='0.0.0.0', port=8000, mode=None)
 
