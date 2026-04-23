@@ -1,0 +1,20 @@
+# Ambientes Virtuais
+ai_env/
+__pycache__/
+
+# Lixo de Compilação
+build/
+dist/
+*.spec
+
+# Modelos Pesados (NUNCA SUBIR ISTO)
+models/
+modelos_voz/
+
+# Bases de Dados e Memórias Pessoais
+chroma_db/
+memories/
+docs/
+
+# Ficheiros de Configuração (Segurança da API Key)
+config.json

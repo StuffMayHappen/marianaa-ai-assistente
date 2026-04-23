@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Roboto:wght@400&display=swap');
+
+:root {
+    --accent-color: #9b59b6;
+    --bg-color: #050505;
+    --box-bg: rgba(20, 20, 20, 0.7);
+    --text-color: #ffffff;
+}
+
+body.light-theme {
+    --bg-color: #f0f0f0;
+    --box-bg: rgba(255, 255, 255, 0.9);
+    --text-color: #1a1a1a;
+}
+
+body {
+    margin: 0; background-color: var(--bg-color); color: var(--text-color);
+    font-family: 'Roboto', sans-serif; overflow: hidden; transition: 0.5s; cursor: crosshair;
+}
+
+.container {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; position: relative; z-index: 10;
+}
+
+.ai-title { font-family: 'Montserrat', sans-serif; font-size: 5rem; letter-spacing: 5px; margin-bottom: 20px; }
+.purple-text { color: var(--accent-color); }
+
+.chat-box {
+    width: 60%; height: 300px; background: var(--box-bg); border: 1px solid #333;
+    border-radius: 10px; padding: 20px; overflow-y: auto; margin-bottom: 30px;
+}
+
+.marianaa-msg { color: var(--accent-color); font-weight: bold; margin-bottom: 10px; }
+.user-msg { color: #aaa; text-align: right; margin-bottom: 10px; }
+
+.input-area { display: flex; gap: 15px; width: 60%; }
+
+input[type="text"] {
+    flex-grow: 1; background: transparent; border: 2px solid var(--accent-color);
+    color: var(--text-color); padding: 15px; border-radius: 8px; outline: none;
+}
+
+button {
+    background: transparent; color: var(--accent-color); border: 2px solid var(--accent-color);
+    padding: 15px 30px; font-weight: bold; cursor: pointer; border-radius: 8px;
+}
+
+button:hover { background: var(--accent-color); color: #000; box-shadow: 0 0 20px var(--accent-color); }
+
+/* MODAL */
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 1000; 
+    left: 0; top: 0;
+    width: 100%; height: 100%; 
+    background-color: rgba(0,0,0,0.9);
+}
+
+.modal-content { background: var(--bg-color); margin: 10% auto; padding: 30px; border: 1px solid var(--accent-color); width: 350px; border-radius: 15px; }
+.setting-item { margin-bottom: 15px; display: flex; flex-direction: column; }
+.save-btn { width: 100%; background: var(--accent-color) !important; color: white !important; }
+.settings-trigger { position: absolute; top: 20px; right: 20px; border: none; font-size: 1.5rem; background: transparent; }
+
+/* EFEITOS */
+.ripple { position: absolute; border-radius: 50%; transform: scale(0); animation: ripple-anim 0.6s linear; background: rgba(155, 89, 182, 0.4); pointer-events: none; }
+@keyframes ripple-anim { to { transform: scale(4); opacity: 0; } }
+
+.snake-dot { position: absolute; width: 8px; height: 8px; background: var(--accent-color); border-radius: 50%; pointer-events: none; z-index: 9999; box-shadow: 0 0 10px var(--accent-color); }
+
+.particle { position: absolute; width: 50px; height: 50px; border: 2px solid rgba(155, 89, 182, 0.1); animation: float 10s infinite linear; }
+@keyframes float { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-1000px); opacity: 0; } }
+
+/* Botão no Canto Superior Direito */
+.settings-trigger {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    background: transparent;
+    border: none;
+    color: var(--accent-color);
+    font-size: 1.8rem;
+    cursor: pointer;
+    z-index: 999; /* Garante que fica por cima de tudo */
+    transition: 0.3s;
+}
+
+.settings-trigger:hover {
+    transform: rotate(90deg);
+    filter: brightness(1.2);
+}

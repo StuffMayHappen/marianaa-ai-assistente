@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+    <head>
+
+        <meta charset="UTF-8">
+
+        <title>Marianaa AI</title>
+
+        <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        
+        <script type="text/javascript" src="/eel.js"></script> 
+
+    </head>
+
+    <body class="dark-theme">
+
+        <div class="particle p1"></div>
+        <div class="particle p2"></div>
+        <div class="particle p3"></div>
+        
+        <button id="open-settings" class="settings-trigger"><i class="fas fa-cog"></i></button>
+
+        <div class="container">
+
+            <h1 class="ai-title" id="display-name">MARIAN<span class="purple-text">AA</span></h1>
+            
+            <div class="chat-box" id="chat-box">
+                <p class="marianaa-msg" id="welcome-msg">SISTEMA ONLINE. Diz-me o que queres, mestre.</p>
+            </div>
+
+            <div class="input-area">
+                <input type="text" id="user-input" placeholder="Escreve ou fala..." autocomplete="off">
+                <button id="submit-btn">ENVIAR</button>
+            </div>
+
+        </div>
+
+        <div id="settings-modal" class="modal">
+
+            <div class="modal-content">
+
+                <h2>Definições do Núcleo</h2>
+
+                <div class="setting-item">
+                    <label>Nome da IA:</label>
+                    <input type="text" id="cfg-ai-name">
+                </div>
+
+                <div class="setting-item">
+                    <label>Wake Word (Ativação):</label>
+                    <input type="text" id="cfg-wake-word">
+                </div>
+
+                <div class="setting-item">
+                    <label>Cor de Destaque:</label>
+                    <input type="color" id="cfg-color">
+                </div>
+
+                <div class="setting-item">
+                    <label>Idioma:</label>
+                    <select id="cfg-lang">
+                        <option value="pt">Português</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+
+                <div class="setting-item">
+                    <button id="toggle-theme">Alternar Dark/Light</button>
+                </div>
+
+                <button id="save-settings" class="save-btn">GUARDAR E APLICAR</button>
+
+            </div>
+
+        </div>
+
+        <script src="script.js"></script>
+
+    </body>
+
+</html>
